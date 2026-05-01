@@ -1,4 +1,5 @@
 import os
+import re
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -136,3 +137,47 @@ result = neil_dagrasse(next_prompt)
 print(result)
 
 print(neil_dagrasse.messages)
+
+# chreate the for loop to run the agent until it produces an answer. max 10
+
+def agentloop(max_iterations, query):
+    agent = Agent(client, system_prompt)
+    tools = ["calculate", "get_planet_mass"]
+    next_prompt = query
+    i = 0
+
+    while i < max_iterations:
+        i +=1
+        result = agent(next_prompt)
+        print(result)
+
+        if "PAUSE" in result and "Action" in result:
+            action = re.findall(r"Action: ([a-z_]+): (.+)", result, re.IGNORECASE)
+            chosen_tool = action[0][0]
+            arg = action[0][1]
+            
+            if chosen_tool in tools:
+                result_tool = eval(f"{chosen_tool}('{arg}')")
+                next_prompt = f"Observation: {result_tool}"
+            else:
+                print(f"Unknown tool: {chosen_tool}")
+                next_prompt = f"Observation: Unknown tool"
+            
+            print(next_prompt)
+            continue
+
+        elif "Answer:" in result:
+            print("Answer found!")
+            print(result)
+            break
+
+
+# result = """Action: calculate: 5.972e24 * 5 
+# PAUSE
+# """
+# action = re.findall(r"Action: ([a-z_]+): (.+)", result, re.IGNORECASE)
+# print(action)
+# print(action[0][0])
+# print(action[0][1])
+
+agentloop(10, "What is the mass of Venus plus mass of Earth times 11?")

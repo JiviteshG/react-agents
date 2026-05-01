@@ -33,7 +33,7 @@ class Agent:
         if self.system is not None:
                 self.messages.append({"role": "system", "content": self.system})
 
-    def __call__(self,message):
+    def __call__(self,message=""):
         if message:
             self.messages.append({"role": "user", "content": message})
         result = self.execute()
@@ -42,7 +42,7 @@ class Agent:
     
     def execute(self):
         completion = self.client.chat.completions.create(
-            model = "llama3-70b-instruct",
+            model = "llama-3.1-8b-instant",
             messages = self.messages
         )
         return completion.choices[0].message.content
@@ -88,3 +88,51 @@ Answer: The mass of Earth times 2 is 1.1944e25 kg
 
 Now it's your turn:
 """.strip()
+
+# tools
+def calculate(expression):
+    return eval(expression)
+
+def get_planet_mass(planet):
+    planet_masses = {
+        "Mercury": 3.3011e23,
+        "Venus": 4.8675e24,
+        "Earth": 5.972e24,
+        "Mars": 6.4171e23,
+        "Jupiter": 1.8982e27,
+        "Saturn": 5.6834e26,
+        "Uranus": 8.6810e25,
+        "Neptune": 1.02413e26
+    }
+    return planet_masses.get(planet, "Unknown planet")
+
+neil_dagrasse = Agent(client, system_prompt)
+
+question = "What is the mass of Earth times 5?"
+
+answer = neil_dagrasse(question)
+print(answer)
+
+print(neil_dagrasse.messages)
+
+result = neil_dagrasse()
+print(result)
+
+observation = get_planet_mass("Earth")
+print(observation)
+
+next_prompt = f"Observation: {observation}"
+result = neil_dagrasse(next_prompt)
+print(result)
+
+result = neil_dagrasse()
+print(result)
+
+observation = calculate("5.972e24 * 5")
+print(observation)
+
+next_prompt = f"Observation: {observation}"
+result = neil_dagrasse(next_prompt)
+print(result)
+
+print(neil_dagrasse.messages)
